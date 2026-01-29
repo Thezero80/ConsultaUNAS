@@ -12,6 +12,8 @@
         input { width: 100%; padding: 12px 20px; border: 2px solid #ddd; border-radius: 50px; font-size: 16px; outline: none; box-sizing: border-box; margin-bottom: 1rem; }
         button { background: var(--primary); color: white; border: none; padding: 12px; border-radius: 50px; font-weight: 600; cursor: pointer; width: 100%; transition: 0.3s; }
         button:hover { background: var(--secondary); transform: scale(1.02); }
+        .btn-secondary { background: transparent; color: var(--dark); border: 2px solid #ddd; padding: 10px; border-radius: 50px; width: 100%; margin-top: 10px; cursor: pointer; }
+        .btn-secondary:hover { background: #f4f7f6; }
         #resultado { margin-top: 2rem; display: none; animation: fadeIn 0.5s ease; }
         .profile-img { width: 130px; height: 160px; border-radius: 12px; object-fit: cover; border: 4px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.1); margin-bottom: 1rem; }
         .info-grid { text-align: left; background: #f9f9f9; padding: 15px; border-radius: 15px; }
@@ -26,6 +28,7 @@
     <h1>Consulta UNAS</h1>
     <input type="text" id="codigoInput" placeholder="Código (ej: 0020230386)" maxlength="10">
     <button id="consultBtn" onclick="buscarEstudiante()">Consultar Datos</button>
+    <button id="newQueryBtn" class="btn-secondary" style="display:none" onclick="nuevaConsulta()">Nueva consulta</button>
     <p id="errorTxt" class="error-msg"></p>
     <div id="resultado">
         <img id="fotoEstudiante" class="profile-img" src="" alt="Foto Alumno">
@@ -89,6 +92,8 @@
                 img.onerror = () => { img.src = "https://via.placeholder.com/130x160?text=Sin+Foto"; };
 
                 resDiv.style.display = 'block';
+                const newBtn = document.getElementById('newQueryBtn');
+                if (newBtn) newBtn.style.display = 'block';
             } else {
                 errorTxt.innerText = "No se encontraron datos. Verifique el código.";
                 errorTxt.style.display = 'block';
@@ -104,6 +109,23 @@
             errorTxt.innerText = "Error al conectar con la base de datos.";
             errorTxt.style.display = 'block';
         }
+    }
+
+    function nuevaConsulta() {
+        document.getElementById('codigoInput').value = '';
+        document.getElementById('nombre').innerText = '';
+        document.getElementById('apPaterno').innerText = '';
+        document.getElementById('apMaterno').innerText = '';
+        document.getElementById('dni').innerText = '';
+        document.getElementById('codigo').innerText = '';
+        document.getElementById('email').innerText = '';
+        document.getElementById('resultado').style.display = 'none';
+        document.getElementById('errorTxt').style.display = 'none';
+        const btn = document.getElementById('consultBtn');
+        if (btn) { btn.disabled = false; btn.innerText = 'Consultar Datos'; }
+        const newBtn = document.getElementById('newQueryBtn');
+        if (newBtn) newBtn.style.display = 'none';
+        document.getElementById('codigoInput').focus();
     }
 </script>
 </body>
