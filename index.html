@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consulta de Alumno | UNAS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #2ecc71; --secondary: #27ae60; --dark: #2c3e50; }
+        body { margin: 0; font-family: 'Poppins', sans-serif; background: linear-gradient(135deg, #1d2b64, #f8cdda); min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .card { background: rgba(255, 255, 255, 0.95); padding: 2rem; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.2); width: 100%; max-width: 450px; text-align: center; }
+        input { width: 100%; padding: 12px 20px; border: 2px solid #ddd; border-radius: 50px; font-size: 16px; outline: none; box-sizing: border-box; margin-bottom: 1rem; }
+        button { background: var(--primary); color: white; border: none; padding: 12px; border-radius: 50px; font-weight: 600; cursor: pointer; width: 100%; transition: 0.3s; }
+        button:hover { background: var(--secondary); transform: scale(1.02); }
+        #resultado { margin-top: 2rem; display: none; animation: fadeIn 0.5s ease; }
+        .profile-img { width: 130px; height: 160px; border-radius: 12px; object-fit: cover; border: 4px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.1); margin-bottom: 1rem; }
+        .info-grid { text-align: left; background: #f9f9f9; padding: 15px; border-radius: 15px; }
+        .info-item { margin-bottom: 8px; font-size: 14px; color: #555; }
+        .error-msg { color: #e74c3c; font-size: 13px; margin-top: 10px; display: none; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; } }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h1>Consulta UNAS</h1>
+    <input type="text" id="codigoInput" placeholder="Código (ej: 0020230386)" maxlength="10">
+    <button id="consultBtn" onclick="buscarEstudiante()">Consultar Datos</button>
+    <p id="errorTxt" class="error-msg"></p>
+    <div id="resultado">
+        <img id="fotoEstudiante" class="profile-img" src="" alt="Foto Alumno">
+        <div class="info-grid">
+            <div class="info-item"><strong>NOMBRES:</strong> <span id="nombre"></span></div>
+            <div class="info-item"><strong>APELLIDO PATERNO:</strong> <span id="apPaterno"></span></div>
+            <div class="info-item"><strong>APELLIDO MATERNO:</strong> <span id="apMaterno"></span></div>
+            <div class="info-item"><strong>DNI:</strong> <span id="dni"></span></div>
+            <div class="info-item"><strong>CÓDIGO:</strong> <span id="codigo"></span></div>
+            <div class="info-item"><strong>Email:</strong> <span id="email"></span></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    async function buscarEstudiante() {
+        const codigo = document.getElementById('codigoInput').value.trim();
+        const resDiv = document.getElementById('resultado');
+        const errorTxt = document.getElementById('errorTxt');
+
+        resDiv.style.display = 'none';
+        errorTxt.style.display = 'none';
+
+        try {
+            // Indicador de carga
+            const btn = document.getElementById('consultBtn');
+            btn.disabled = true;
+            const originalBtnText = btn.innerText;
+            btn.innerText = 'Consultando...';
+
+            // Usar endpoint RAW para evitar wrapper JSON
+            const proxyUrl = "https://api.allorigins.win/raw?url=";
+            const targetUrl = `https://pagos.unas.edu.pe/person/validate/alumno/${codigo}`;
+
+            const response = await fetch(proxyUrl + encodeURIComponent(targetUrl));
+            const data = await response.json();
+
+            // Usar variables exactas provistas por la API
+            const nombreEncontrado = data.nombre || null;
+            const apellidoP = data.appaterno || '';
+            const apellidoM = data.apmaterno || '';
+            const dniEncontrado = data.dni || data.document_number || data.dni_number || '';
+
+            if (nombreEncontrado || dniEncontrado) {
+                const email = data.email || 'No registrado';
+
+                // Lógica de la Foto
+                const anio = codigo.substring(2, 6);
+                const urlFoto = `https://academico.unas.edu.pe/resources/Photos/Students/${anio}/UNAS${codigo}${dniEncontrado}.jpg`;
+
+                // Asignar a la interfaz
+                document.getElementById('nombre').innerText = nombreEncontrado || 'No identificado';
+                document.getElementById('apPaterno').innerText = apellidoP || 'No registrado';
+                document.getElementById('apMaterno').innerText = apellidoM || 'No registrado';
+                document.getElementById('dni').innerText = dniEncontrado;
+                document.getElementById('codigo').innerText = codigo;
+                document.getElementById('email').innerText = email;
+
+                const img = document.getElementById('fotoEstudiante');
+                img.src = urlFoto;
+                img.onerror = () => { img.src = "https://via.placeholder.com/130x160?text=Sin+Foto"; };
+
+                resDiv.style.display = 'block';
+            } else {
+                errorTxt.innerText = "No se encontraron datos. Verifique el código.";
+                errorTxt.style.display = 'block';
+            }
+
+            // Restaurar botón
+            btn.disabled = false;
+            btn.innerText = originalBtnText;
+        } catch (e) {
+            const btn = document.getElementById('consultBtn');
+            btn.disabled = false;
+            btn.innerText = 'Consultar Datos';
+            errorTxt.innerText = "Error al conectar con la base de datos.";
+            errorTxt.style.display = 'block';
+        }
+    }
+</script>
+</body>
+</html>
